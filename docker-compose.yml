@@ -1,5 +1,6 @@
 version: "3.7"
 services:
   database:
-    image: mariadb:10.5.2-bionic
+    build:
+        context: ./mariadb 
     env_file: ./mariadb/mariadb.env
