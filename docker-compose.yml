@@ -1,6 +1,9 @@
 version: "3.7"
 services:
-  database:
-    build:
-        context: ./mariadb 
-    env_file: ./mariadb/mariadb.env
+    database:
+        build:
+            context: ./mariadb
+        env_file: ./mariadb/mariadb.env
+    airflow-web:
+        build:
+            context: ./airflow
