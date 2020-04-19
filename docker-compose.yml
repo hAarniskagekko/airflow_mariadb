@@ -1,9 +1,46 @@
 version: "3.7"
 services:
+
     database:
         build:
             context: ./mariadb
         env_file: ./mariadb/mariadb.env
+        volumes:
+            - /data/airflow_db:/mnt/mysql
+
     airflow-web:
         build:
             context: ./airflow
+        env_file: ./airflow/airflow.env
+        user: airflow
+        command: sh /airflow/start_airflow.sh
+        expose:
+            - "8000"
+            - "8001"
+        volumes:
+            - /data/airflow/dags:/airflow/dags
+            - /data/airflow/logs:/airflow/logs
+        depends_on:
+            - database
+            - redis
+        stdin_open: True
+
+    redis:
+        build:
+            context: ./redis
+        command: redis-server /data/redis.conf
+        stdin_open: True
+
+    airflolw-worker:
+        build:
+            context: ./airflow
+        env_file: ./airflow/airflow.env
+        volumes:
+            - /data/airflow/dags:/airflow/dags
+            - /data/airflow/logs:/airflow/logs
+        depends_on:
+            - database
+            - redis
+        user: airflow
+        command: airflow worker
+        stdin_open: True
