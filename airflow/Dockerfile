@@ -12,11 +12,11 @@ RUN pip install apache-airflow[celery,mysql,redis]
 # default image does not have jsii installed but it is neededs
 RUN pip install jsii
 
-COPY airflow.cfg /airflow/
-
-COPY start_airflow.sh /airflow/
-# Copy Airflow configuration to airlfow home folder in container
-
+# Crete airflow user to run airflow
 RUN useradd airflow
 
+# Create home folder for airflow
+RUN mkdir /airflow
+
+# Make airflow user owner of airflow folder
 RUN chown -R airflow:airflow /airflow/
