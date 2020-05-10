@@ -1,5 +1,3 @@
-FROM redis:6.0-rc3
+FROM redis:6.0-rc-alpine
 
-COPY /data/ redis.conf
-
-RUN ./redis-server /data/redis.conf
+COPY redis.conf /data/
