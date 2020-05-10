@@ -7,13 +7,42 @@ services:
         env_file: ./mariadb/mariadb.env
         volumes:
             - /data/airflow_db:/mnt/mysql
+        networks:
+            backend:
+
+    redis:
+        build:
+            context: ./redis
+        command: redis-server /data/redis.conf
+        networks:
+            backend:
+                ipv4_address: 172.18.0.11
 
     airflow-web:
         build:
             context: ./airflow
         env_file: ./airflow/airflow.env
         user: airflow
-        command: sh /airflow/start_airflow.sh
+        command: airflow webserver
+        expose:
+            - "8000"
+        volumes:
+            - /data/airflow/dags:/airflow/dags
+            - /data/airflow/logs:/airflow/logs
+        depends_on:
+            - database
+            - redis
+        networks:
+            frontend:
+                ipv4_address: 173.17.0.10
+            backend:
+
+    airflow-scheduler:
+        build:
+            context: ./airflow
+        env_file: ./airflow/airflow.env
+        user: airflow
+        command: airflow scheduler
         expose:
             - "8000"
             - "8001"
@@ -23,13 +52,9 @@ services:
         depends_on:
             - database
             - redis
-        stdin_open: True
-
-    redis:
-        build:
-            context: ./redis
-        command: redis-server /data/redis.conf
-        stdin_open: True
+        networks:
+            backend:
+                ipv4_address: 172.18.0.10
 
     airflolw-worker:
         build:
@@ -43,4 +68,17 @@ services:
             - redis
         user: airflow
         command: airflow worker
-        stdin_open: True
+        networks:
+            backend:
+
+networks:
+    frontend:
+        ipam:
+            driver: default
+            config:
+                - subnet: 173.17.0.0/24
+    backend:
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.18.0.0/24
