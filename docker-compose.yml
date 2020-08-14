@@ -18,6 +18,25 @@ services:
             backend:
                 ipv4_address: 172.18.0.11
 
+    airflow-scheduler:
+        build:
+            context: ./airflow
+        env_file: ./airflow/airflow.env
+        user: airflow
+        command: /bin/bash -c "airflow initdb && airflow scheduler"
+        expose:
+            - "8000"
+            - "8001"
+        volumes:
+            - /data/airflow/dags:/airflow/dags
+            - /data/airflow/logs:/airflow/logs
+        depends_on:
+            - database
+            - redis
+        networks:
+            backend:
+                ipv4_address: 172.18.0.10
+
     airflow-web:
         build:
             context: ./airflow
@@ -32,29 +51,11 @@ services:
         depends_on:
             - database
             - redis
+            - airflow-scheduler
         networks:
             frontend:
                 ipv4_address: 173.17.0.10
             backend:
-
-    airflow-scheduler:
-        build:
-            context: ./airflow
-        env_file: ./airflow/airflow.env
-        user: airflow
-        command: airflow scheduler
-        expose:
-            - "8000"
-            - "8001"
-        volumes:
-            - /data/airflow/dags:/airflow/dags
-            - /data/airflow/logs:/airflow/logs
-        depends_on:
-            - database
-            - redis
-        networks:
-            backend:
-                ipv4_address: 172.18.0.10
 
     airflolw-worker:
         build:
@@ -66,6 +67,7 @@ services:
         depends_on:
             - database
             - redis
+            - airflow-scheduler
         user: airflow
         command: airflow worker
         networks:
